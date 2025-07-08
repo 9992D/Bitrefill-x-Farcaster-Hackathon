@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
-import ImageUploader from "./components/ImageUploader"; // ou adapte le chemin
+import { useState } from "react";
+import Image from "next/image";
+import ImageUploader from "./components/ImageUploader";
 import BtcSpinner from "./components/BtcSpinner";
 import BtcSuccess from "./components/BtcSuccess";
 import BtcBackButton from "./components/BtcBackButton";
@@ -89,7 +90,14 @@ export default function Home() {
         <div className="w-full max-w-md flex flex-col items-center gap-4">
           <BtcSuccess />
           {result?.imageUrl && (
-            <img src={result.imageUrl} alt="Image uploadée" className="max-w-xs rounded-lg shadow" />
+            <Image
+              src={result.imageUrl}
+              alt="Image uploadée"
+              width={300}
+              height={300}
+              className="max-w-xs rounded-lg shadow"
+              unoptimized // utile pour images externes Cloudinary
+            />
           )}
           {result?.bestGuess && (
             <div className="italic text-gray-700 text-center mb-4">Recherche : <b>{result.bestGuess}</b></div>
@@ -103,7 +111,14 @@ export default function Home() {
                 {result.annonces.map((item, idx) => (
                   <li key={item.product_id || item.link || idx} className="border rounded-xl p-3 shadow flex gap-4 items-center">
                     {item.thumbnail && (
-                      <img src={item.thumbnail} alt={item.title || ""} className="w-16 h-16 object-cover rounded-lg" />
+                      <Image
+                        src={item.thumbnail}
+                        alt={item.title || ""}
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 object-cover rounded-lg"
+                        unoptimized
+                      />
                     )}
                     <div>
                       <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-bold text-blue-700 hover:underline">

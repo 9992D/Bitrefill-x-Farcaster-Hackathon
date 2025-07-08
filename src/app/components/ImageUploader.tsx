@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, ChangeEvent } from "react";
 
 export default function ImageUploader({
@@ -35,7 +36,14 @@ export default function ImageUploader({
           onChange={handleFileChange}
         />
         {preview ? (
-          <img src={preview} alt="Preview" className="w-full rounded-xl shadow" />
+          <Image
+            src={preview}
+            alt="Preview"
+            width={300}
+            height={300}
+            className="w-full rounded-xl shadow"
+            unoptimized
+          />
         ) : (
           <div className="flex flex-col items-center gap-2 text-[#FF9900]">
             <span className="text-lg font-semibold">Click or drag to upload image</span>
