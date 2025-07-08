@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { sdk } from "@farcaster/miniapp-sdk";
 import Image from "next/image";
 import ImageUploader from "./components/ImageUploader";
 import BtcSpinner from "./components/BtcSpinner";
@@ -26,6 +27,10 @@ export default function Home() {
   const [step, setStep] = useState<"upload" | "processing" | "done">("upload");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<Result>(null);
+
+  useEffect(() => {
+    sdk.actions.ready();
+  }, []);
 
   function handleClear() {
     setSelectedFile(null);
@@ -96,11 +101,11 @@ export default function Home() {
               width={300}
               height={300}
               className="max-w-xs rounded-lg shadow"
-              unoptimized // utile pour images externes Cloudinary
+              unoptimized
             />
           )}
           {result?.bestGuess && (
-            <div className="italic text-gray-700 text-center mb-4">Recherche : <b>{result.bestGuess}</b></div>
+            <div className="italic text-gray-700 text-center mb-4">Recherche : <b>{result.bestGuess}</b></div>
           )}
           {result?.error ? (
             <div className="text-red-600 font-semibold">{result.error}</div>
