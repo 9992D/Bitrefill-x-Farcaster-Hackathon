@@ -1,0 +1,15 @@
+{
+  "frame": {
+    "name": "Visual Shopping Mini App",
+    "version": "1",
+    "iconUrl": "https://bitrefill-x-farcaster-hackathon.vercel.app/icon.png",
+    "homeUrl": "https://bitrefill-x-farcaster-hackathon.vercel.app",
+    "imageUrl": "https://bitrefill-x-farcaster-hackathon.vercel.app/image.png",
+    "splashImageUrl": "https://bitrefill-x-farcaster-hackathon.vercel.app/splash.png",
+    "splashBackgroundColor": "#F2A900",
+    "webhookUrl": "https://bitrefill-x-farcaster-hackathon.vercel.app/api/webhook",
+    "subtitle": "Visual Shopping",
+    "description": "Users will be able to upload an image—anything they find interesting or want to buy. ChatGPT will analyze the image, identify the item, and provide direct links to purchase similar products across multiple platforms (e.g., Amazon, eBay, Etsy). Users can then select their preferred platform, instantly purchase a gift card via Bitrefill, and use it to buy the item. Finally, with a single click, users can share their purchase story as a Cast (tweet) on Farcaster, explaining what they bought and why.",
+    "primaryCategory": "shopping"
+  }
+}
