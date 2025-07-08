@@ -1,40 +1,58 @@
 "use client";
 import { useEffect, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
+import Image from "next/image";
 import ImageUploader from "./components/ImageUploader";
 import BtcSpinner from "./components/BtcSpinner";
 import BtcSuccess from "./components/BtcSuccess";
 import BtcBackButton from "./components/BtcBackButton";
-import ProductCard from "./components/ProductCard";
+import OfferDropdown from "./components/OfferDropdown";
 import { BitrefillProduct, BitrefillPackage } from "./types";
+
+type ShoppingAnnonce = {
+  product_id?: string;
+  title?: string;
+  link?: string;
+  source?: string;
+  price?: string;
+  thumbnail?: string;
+};
+
+type AnalyzeResult = {
+  imageUrl: string;
+  bestGuess: string;
+  annonces: ShoppingAnnonce[];
+  error?: string;
+} | null;
+
+type InvoiceResult = {
+  data?: {
+    id: string;
+    payment?: {
+      method?: string;
+      currency?: string;
+      price?: number;
+    };
+  };
+  error?: string;
+} | null;
 
 export default function Home() {
   const [step, setStep] = useState<"upload" | "processing" | "done">("upload");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [result, setResult] = useState<null | {
-    imageUrl: string;
-    bestGuess: string;
-    annonces: unknown[];
-    error?: string;
-  }>(null);
+  const [result, setResult] = useState<AnalyzeResult>(null);
 
   const [bitrefillProduct, setBitrefillProduct] = useState<BitrefillProduct | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<BitrefillPackage | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [errorProduct, setErrorProduct] = useState<string | null>(null);
 
-  const [invoiceResult, setInvoiceResult] = useState<{
-    data?: {
-      id: string;
-      payment?: {
-        method?: string;
-        currency?: string;
-        price?: number;
-      };
-    };
-    error?: string;
-  } | null>(null);
+  const [invoiceResult, setInvoiceResult] = useState<InvoiceResult>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
+
+  // Notification
+  const [showNotif, setShowNotif] = useState(false);
+  const [notifId, setNotifId] = useState<string | null>(null);
 
   useEffect(() => {
     sdk.actions.ready();
@@ -84,6 +102,8 @@ export default function Home() {
     setErrorProduct(null);
     setSelectedPackage(null);
     setInvoiceResult(null);
+    setShowNotif(false);
+    setNotifId(null);
     try {
       const res = await fetch("/api/offer", { method: "POST" });
       const data = await res.json();
@@ -99,16 +119,20 @@ export default function Home() {
     }
   }
 
-  // Invoice creation simulation
+  // Simulate invoice creation & payment (for hackathon demo)
   async function handleBuy() {
     if (!bitrefillProduct || !selectedPackage) return;
     setLoadingInvoice(true);
     setInvoiceResult(null);
-    // fake API call (simulate instant paid)
+    setShowNotif(false);
+    setNotifId(null);
+
+    // simulate API call
     setTimeout(() => {
+      const invoiceId = crypto.randomUUID();
       setInvoiceResult({
         data: {
-          id: crypto.randomUUID(),
+          id: invoiceId,
           payment: {
             method: "balance",
             currency: "BTC",
@@ -117,11 +141,28 @@ export default function Home() {
         },
       });
       setLoadingInvoice(false);
+
+      // Show notification for 10s
+      setShowNotif(true);
+      setNotifId(invoiceId);
+      setTimeout(() => {
+        setShowNotif(false);
+        setNotifId(null);
+      }, 10000);
     }, 1200);
   }
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-white relative">
+      {/* Notification (appears on invoice) */}
+      {showNotif && invoiceResult?.data?.id && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-4 rounded-xl shadow-xl z-50 animate-slide-down">
+          Invoice <span className="font-mono">{invoiceResult.data.id}</span> was paid!<br />
+          You'll receive a confirmation email soon.
+        </div>
+      )}
+
+      {/* Button to fetch Bitrefill product */}
       <div className="mb-6 w-full flex flex-col items-center">
         <button
           className="px-4 py-2 bg-[#FF9900] text-white rounded font-bold hover:bg-[#e08700] transition"
@@ -136,16 +177,69 @@ export default function Home() {
           </div>
         )}
         {bitrefillProduct && (
-          <ProductCard
-            product={bitrefillProduct}
-            selectedPackage={selectedPackage}
-            onSelectPackage={setSelectedPackage}
-            onBuy={handleBuy}
-            loadingInvoice={loadingInvoice}
-            invoiceResult={invoiceResult}
-          />
+          <div className="mt-4 w-full max-w-md">
+            <div className="flex items-center gap-3 mb-2">
+              <Image
+                src={`https://cdn.bitrefill.com/images/products/amazon_fr.png`}
+                width={48}
+                height={48}
+                alt={bitrefillProduct.name}
+                className="rounded-lg"
+                unoptimized
+              />
+              <span className="font-bold text-lg">{bitrefillProduct.name}</span>
+            </div>
+            <div className="mb-2 font-semibold text-[#FF9900]">Select an offer:</div>
+            <OfferDropdown
+              packages={bitrefillProduct.packages}
+              selectedPackage={selectedPackage}
+              onSelect={setSelectedPackage}
+            />
+            {selectedPackage && (
+              <div className="mt-3 p-3 bg-green-50 border border-green-300 rounded text-green-900">
+                Selected offer: <b>{selectedPackage.value} €</b> – {(selectedPackage.price / 1e8).toFixed(8)} BTC
+                <br />
+                <span className="text-xs text-gray-600">Package ID: {selectedPackage.id}</span>
+                <br />
+                <button
+                  className="mt-3 px-4 py-2 rounded bg-[#FF9900] text-white font-bold hover:bg-[#e08700] transition"
+                  onClick={handleBuy}
+                  disabled={loadingInvoice}
+                >
+                  {loadingInvoice ? "Creating invoice..." : "Buy"}
+                </button>
+                {invoiceResult && (
+                  <div className="mt-3 text-sm bg-gray-100 rounded p-2">
+                    {invoiceResult.error && (
+                      <span className="text-red-600">{invoiceResult.error}</span>
+                    )}
+                    {invoiceResult.data && (
+                      <>
+                        <div className="font-bold text-green-700">Invoice created and paid!</div>
+                        <div className="break-all">ID: {invoiceResult.data.id}</div>
+                        <div>
+                          Payment method: {invoiceResult.data.payment?.method}
+                        </div>
+                        <div>
+                          Amount paid:{" "}
+                          <span className="font-mono text-xs">
+                            {(invoiceResult.data.payment?.price || 0 / 1e8).toFixed(8)} BTC
+                          </span>
+                        </div>
+                        <div className="mt-2 italic text-sm text-gray-700">
+                          (You will receive an email confirmation soon.)
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Rest of your app (image upload/analyze) */}
       {step !== "upload" && <BtcBackButton onClick={handleBack} />}
       <h1 className="text-3xl font-bold mb-4 text-[#FF9900] flex items-center gap-2">
         <span>
@@ -172,13 +266,13 @@ export default function Home() {
         <div className="w-full max-w-md flex flex-col items-center gap-4">
           <BtcSuccess />
           {result?.imageUrl && (
-            <img
+            <Image
               src={result.imageUrl}
               alt="Uploaded"
               width={300}
               height={300}
               className="max-w-xs rounded-lg shadow"
-              style={{ objectFit: "cover" }}
+              unoptimized
             />
           )}
           {result?.bestGuess && (
@@ -192,15 +286,16 @@ export default function Home() {
             <div className="w-full">
               <h2 className="text-lg font-semibold mb-2">Google Shopping Ads:</h2>
               <ul className="space-y-4">
-                {result.annonces.map((item: any, idx: number) => (
+                {result.annonces.map((item: ShoppingAnnonce, idx: number) => (
                   <li key={item.product_id || item.link || idx} className="border rounded-xl p-3 shadow flex gap-4 items-center">
                     {item.thumbnail && (
-                      <img
+                      <Image
                         src={item.thumbnail}
                         alt={item.title || ""}
                         width={64}
                         height={64}
                         className="w-16 h-16 object-cover rounded-lg"
+                        unoptimized
                       />
                     )}
                     <div>
@@ -220,6 +315,22 @@ export default function Home() {
           )}
         </div>
       )}
+
+      <style jsx global>{`
+        @keyframes slide-down {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -24px);
+          }
+          100% {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+      `}</style>
     </main>
   );
 }
