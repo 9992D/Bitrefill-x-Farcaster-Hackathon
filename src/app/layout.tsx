@@ -8,7 +8,7 @@ export const metadata = {
   other: {
     "fc:miniapp": JSON.stringify({
       version: "1",
-      imageUrl: "https://your-domain.com/og-image.png", // Use a 3:2 ratio image; placeholder for now
+      imageUrl: "https://your-domain.com/og-image.png", 
       button: {
         title: "Open Visual Shopping",
         action: {
