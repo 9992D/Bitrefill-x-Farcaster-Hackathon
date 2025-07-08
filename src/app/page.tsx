@@ -52,7 +52,6 @@ export default function Home() {
 
   // Notification
   const [showNotif, setShowNotif] = useState(false);
-  const [notifId, setNotifId] = useState<string | null>(null);
 
   useEffect(() => {
     sdk.actions.ready();
@@ -103,7 +102,6 @@ export default function Home() {
     setSelectedPackage(null);
     setInvoiceResult(null);
     setShowNotif(false);
-    setNotifId(null);
     try {
       const res = await fetch("/api/offer", { method: "POST" });
       const data = await res.json();
@@ -125,7 +123,6 @@ export default function Home() {
     setLoadingInvoice(true);
     setInvoiceResult(null);
     setShowNotif(false);
-    setNotifId(null);
 
     // simulate API call
     setTimeout(() => {
@@ -144,10 +141,8 @@ export default function Home() {
 
       // Show notification for 10s
       setShowNotif(true);
-      setNotifId(invoiceId);
       setTimeout(() => {
         setShowNotif(false);
-        setNotifId(null);
       }, 10000);
     }, 1200);
   }
@@ -158,7 +153,7 @@ export default function Home() {
       {showNotif && invoiceResult?.data?.id && (
         <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-4 rounded-xl shadow-xl z-50 animate-slide-down">
           Invoice <span className="font-mono">{invoiceResult.data.id}</span> was paid!<br />
-          You'll receive a confirmation email soon.
+          You&apos;ll receive a confirmation email soon.
         </div>
       )}
 
@@ -223,7 +218,7 @@ export default function Home() {
                         <div>
                           Amount paid:{" "}
                           <span className="font-mono text-xs">
-                            {(invoiceResult.data.payment?.price || 0 / 1e8).toFixed(8)} BTC
+                            {(invoiceResult.data.payment?.price ?? 0 / 1e8).toFixed(8)} BTC
                           </span>
                         </div>
                         <div className="mt-2 italic text-sm text-gray-700">
