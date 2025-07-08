@@ -1,4 +1,27 @@
+import Image from "next/image";
+import { BitrefillProduct, BitrefillPackage } from "../types";
 import OfferDropdown from "./OfferDropdown";
+
+type InvoiceResult = {
+  data?: {
+    id: string;
+    payment?: {
+      method?: string;
+      currency?: string;
+      price?: number;
+    };
+  };
+  error?: string;
+} | null;
+
+type ProductCardProps = {
+  product: BitrefillProduct;
+  selectedPackage: BitrefillPackage | null;
+  onSelectPackage: (pkg: BitrefillPackage) => void;
+  onBuy: () => void;
+  loadingInvoice: boolean;
+  invoiceResult: InvoiceResult;
+};
 
 export default function ProductCard({
   product,
@@ -7,17 +30,18 @@ export default function ProductCard({
   onBuy,
   loadingInvoice,
   invoiceResult,
-}: {
-  product: any;
-  selectedPackage: any | null;
-  onSelectPackage: (pkg: any) => void;
-  onBuy: () => void;
-  loadingInvoice: boolean;
-  invoiceResult: any;
-}) {
+}: ProductCardProps) {
   return (
     <div className="mt-4 w-full max-w-md">
       <div className="flex items-center gap-3 mb-2">
+        <Image
+          src={`https://cdn.bitrefill.com/images/products/amazon_fr.png`}
+          width={48}
+          height={48}
+          alt={product.name}
+          className="rounded-lg"
+          unoptimized
+        />
         <span className="font-bold text-lg">{product.name}</span>
       </div>
       <div className="mb-2 font-semibold text-[#FF9900]">Select an offer:</div>
@@ -28,7 +52,7 @@ export default function ProductCard({
       />
       {selectedPackage && (
         <div className="mt-3 p-3 bg-green-50 border border-green-300 rounded text-green-900">
-          Selected offer: <b>{selectedPackage.value} €</b> – {(selectedPackage.price / 1e9).toFixed(8)} BTC
+          Selected offer: <b>{selectedPackage.value} €</b> – {(selectedPackage.price / 1e8).toFixed(8)} BTC
           <br />
           <span className="text-xs text-gray-600">Package ID: {selectedPackage.id}</span>
           <br />

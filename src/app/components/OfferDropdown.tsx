@@ -1,19 +1,21 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { BitrefillPackage } from "../types";
+
+type OfferDropdownProps = {
+  packages: BitrefillPackage[];
+  selectedPackage: BitrefillPackage | null;
+  onSelect: (pkg: BitrefillPackage) => void;
+};
 
 export default function OfferDropdown({
   packages,
   selectedPackage,
   onSelect,
-}: {
-  packages: any[];
-  selectedPackage: any | null;
-  onSelect: (pkg: any) => void;
-}) {
+}: OfferDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
@@ -24,13 +26,13 @@ export default function OfferDropdown({
   }, [open]);
 
   const selectedLabel = selectedPackage
-    ? `${selectedPackage.value} € – ${(selectedPackage.price / 1e7).toFixed(8)} BTC`
+    ? `${selectedPackage.value} € – ${(selectedPackage.price / 1e8).toFixed(8)} BTC`
     : "Select an offer";
 
   return (
     <div className="relative w-full max-w-md" ref={ref}>
       <button
-        className={`w-full px-3 py-2 rounded border shadow font-semibold flex items-center justify-between bg-[#FF9900] text-white`}
+        className="w-full px-3 py-2 rounded border shadow font-semibold flex items-center justify-between bg-[#FF9900] text-white"
         onClick={() => setOpen((v) => !v)}
         type="button"
       >
@@ -38,14 +40,12 @@ export default function OfferDropdown({
         <span className="ml-2">{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <div className="absolute left-0 right-0 mt-1 bg-white border shadow rounded z-20 max-h-72 overflow-auto animate-fade-in-fast">
-          {packages.map((pkg: any) => (
+        <div className="absolute left-0 right-0 mt-1 bg-white border shadow rounded z-20 max-h-72 overflow-auto">
+          {packages.map((pkg) => (
             <button
               key={pkg.id}
               className={`w-full text-left px-3 py-2 hover:bg-[#FF9900] hover:text-white font-mono flex justify-between items-center ${
-                selectedPackage?.id === pkg.id
-                  ? "bg-orange-100 font-bold"
-                  : ""
+                selectedPackage?.id === pkg.id ? "bg-orange-100 font-bold" : ""
               }`}
               onClick={() => {
                 onSelect(pkg);
@@ -54,7 +54,7 @@ export default function OfferDropdown({
               type="button"
             >
               <span>{pkg.value} €</span>
-              <span>{(pkg.price / 1e7).toFixed(8)} BTC</span>
+              <span>{(pkg.price / 1e8).toFixed(8)} BTC</span>
             </button>
           ))}
         </div>
